@@ -13,7 +13,7 @@ This is a batch effect analysis.
 
 ### Analysis
 
-[Report 1](batch_effect_1.html)  
-[Report 2](batch_effect_2.html)
+[Report 1](batch-effect-1.html)  
+[Report 2](batch-effect-2.html)
 
 
