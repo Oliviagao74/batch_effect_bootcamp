@@ -1,0 +1,56 @@
+---
+title: "Batch Effect 2"
+author: "Sihui Gao"
+date: "2017/7/12"
+output: html_document
+---
+
+#### Let's explore batch effect more!
+
+```{r,message=FALSE}
+library(Biobase)
+library(rafalib)
+library(genefilter)
+library(GSE5859)
+data(GSE5859)
+```
+
+First, remove a redundant sample and controls:
+```{r, results='hide'}
+cors <- cor(exprs(e))
+Pairs=which(abs(cors)>0.9999,arr.ind=TRUE)
+out = Pairs[which(Pairs[,1]<Pairs[,2]),,drop=FALSE]
+if(length(out[,2])>0) e=e[,-out[2]]
+
+out <- grep("AFFX",featureNames(e))
+e <- e[-out,]
+```
+
+PCAnalysis:
+```{r}
+# Create a detrended gene expression data matrix and 
+# extract the information on dates and ethnic group 
+y <- exprs(e)-rowMeans(exprs(e))
+dates <- pData(e)$date
+eth <- pData(e)$ethnicity
+
+# perform PCA
+s <- svd(y)
+```
+
+MDS plot of PC1 and PC2 for **ethnic groups** and **years**
+```{r}
+cols = as.numeric(eth)
+mypar(1,2)
+plot(s$v[,1],s$v[,2],col=cols,pch=16, xlab="PC1",ylab="PC2")
+legend("bottomleft",levels(eth),col=seq(along=levels(eth)),pch=16)
+title("Ethnic groups")
+
+sampleInfo = pData(e)
+year = factor( format(sampleInfo$date,"%y") )
+cols = as.numeric(year)
+
+plot(s$v[,1],s$v[,2],col=cols,pch=16, xlab="PC1",ylab="PC2")
+legend("bottomleft",levels(year),col=seq(along=levels(year)),pch=16)
+title("Years")
+```

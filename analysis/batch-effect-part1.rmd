@@ -1,0 +1,59 @@
+---
+title: "Batch Effect 1"
+author: "Sihui Gao"
+date: "2017/7/12"
+output: html_document
+---
+
+### Use the gene expression data from [GSE5859](https://github.com/genomicsclass/GSE5859), we are going to try detecting batch effect.
+
+```{r introduce package & data, message=FALSE}
+library(Biobase)
+library(rafalib)
+library(genefilter)
+library(GSE5859)
+data(GSE5859)
+```
+
+#### Sample information:
+```{r output sample info, include=FALSE}
+geneExpression = exprs(e)
+
+sampleInfo = pData(e)
+head(sampleInfo$date)
+
+year = factor( format(sampleInfo$date,"%y") )
+tab = table(year,sampleInfo$ethnicity)
+```
+
+```{r}
+print(tab)
+```
+
+
+#### Next, let's do some DE analysis:  
+1. remove control genes:
+```{r}
+out <- grep("AFFX",rownames(geneExpression))
+```
+
+2. t-test between CEU and ASN ethinic groups:
+```{r}
+eth <- sampleInfo$ethnicity
+ind<- which(eth%in%c("CEU","ASN"))
+res1 <- rowttests(geneExpression[-out,ind],droplevels(eth[ind]))
+```
+
+3. t-test between 2002 and 2003 with in CEU group:
+```{r}
+ind <- which(year%in%c("02","03") & eth=="CEU")
+res2 <- rowttests(geneExpression[-out,ind],droplevels(year[ind]))
+```
+
+#### Plotting the results:
+```{r}
+hist(res1$p, main="p-value of CEU vs ASN")
+hist(res2$p, main="p-value of 2002 vs 2003 for CEU")
+```
+
+From the first histogram, we can see a majority of genes show DE between the two ethnics groups. However, the second histogram shows that most DE effect is partially caused by year difference. This is an example of batch effect caused by time.
